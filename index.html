@@ -4,36 +4,11 @@
     <meta charset="UTF-8">
     <title>Unifutbol Scout</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-        }
-        select {
-            padding: 8px;
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 6px;
-            font-size: 12px;
-        }
-        th {
-            background: #333;
-            color: white;
-        }
-        tr:nth-child(even) {
-            background: #eee;
-        }
+        body { font-family: Arial; background: #f4f4f4; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { border: 1px solid #ccc; padding: 4px; font-size: 11px; }
+        th { background: #333; color: white; }
+        tr:nth-child(even) { background: #eee; }
     </style>
 </head>
 <body>
@@ -54,28 +29,31 @@
 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTa1OMKOtrrTqrSXDtDkHy-23TEcdkMPRUObduI0_8wasPPvO4XC5n1u8oOpXf3qkyq5U9qeIoeHKaF/pub?gid=0&single=true&output=csv";
 
 fetch(url)
-    .then(response => response.text())
+    .then(r => r.text())
     .then(csv => {
 
-        const rows = csv.split("\n").map(r => r.split(";"));
+        // Elimina líneas vacías
+        const lines = csv.split("\n").filter(line => line.trim() !== "");
+
+        // Separa por punto y coma
+        const rows = lines.map(l => l.split(";"));
+
         const headers = rows[0];
-
         const thead = document.querySelector("thead");
-        const headerRow = document.createElement("tr");
-
-        headers.forEach(h => {
-            const th = document.createElement("th");
-            th.textContent = h;
-            headerRow.appendChild(th);
-        });
-
-        thead.appendChild(headerRow);
-
         const tbody = document.querySelector("tbody");
         const filtro = document.getElementById("filtro-equipo");
 
-        const equipos = new Set();
+        // Crear cabecera
+        const trHead = document.createElement("tr");
+        headers.forEach(h => {
+            const th = document.createElement("th");
+            th.textContent = h;
+            trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
 
+        // Crear lista de equipos
+        const equipos = new Set();
         rows.slice(1).forEach(row => {
             const equipo = row[headers.indexOf("CodEquipo")];
             if (equipo) equipos.add(equipo);
@@ -88,6 +66,7 @@ fetch(url)
             filtro.appendChild(option);
         });
 
+        // Función para mostrar filas
         function mostrarFiltrado() {
             const valor = filtro.value;
             tbody.innerHTML = "";
