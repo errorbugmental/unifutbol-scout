@@ -32,7 +32,7 @@ fetch(url)
     .then(r => r.text())
     .then(csv => {
 
-        // Elimina líneas vacías y líneas incompletas
+        // Limpieza: elimina líneas vacías y líneas incompletas
         const lines = csv
             .split("\n")
             .filter(line => line.trim() !== "")
