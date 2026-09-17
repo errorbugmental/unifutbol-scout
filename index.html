@@ -1,159 +1,63 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Unifutbol Scout</title>
-<style>
-    body {
-        background: #1b1b1b;
-        color: #e0e0e0;
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 20px;
-    }
-
-    h1 {
-        text-align: center;
-        color: #00b4ff;
-        margin-bottom: 20px;
-    }
-
-    .filters {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-        justify-content: center;
-    }
-
-    input, select {
-        padding: 10px;
-        background: #2b2b2b;
-        border: 1px solid #444;
-        color: #fff;
-        border-radius: 5px;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-
-    th, td {
-        padding: 10px;
-        border-bottom: 1px solid #333;
-        text-align: left;
-    }
-
-    th {
-        background: #222;
-        color: #00b4ff;
-    }
-
-    tr:hover {
-        background: #2a2a2a;
-    }
-</style>
-</head>
-<body>
-
-<h1>Unifutbol Scout</h1>
-
-<div class="filters">
-    <input id="search" placeholder="Buscar jugador...">
-    <select id="position">
-        <option value="">Posición</option>
-        <option>POR</option>
-        <option>DFC</option>
-        <option>LD</option>
-        <option>LI</option>
-        <option>MCD</option>
-        <option>MC</option>
-        <option>MI</option>
-        <option>MD</option>
-        <option>MP</option>
-        <option>EI</option>
-        <option>ED</option>
-        <option>DC</option>
-    </select>
-    <select id="club">
-        <option value="">Club</option>
-    </select>
-</div>
-
-<table id="table"></table>
-
-<script>
-const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTa1OMKOtrrTqrSXDtDkHy-23TEcdkMPRUObduI0_8wasPPvO4XC5n1u8oOpXf3qkyq5U9qeIoeHKaF/pub?gid=0&single=true&output=csv
-";
+const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTa1OMKOtrrTqrSXDtDkHy-23TEcdkMPRUObduI0_8wasPPvO4XC5n1u8oOpXf3qkyq5U9qeIoeHKaF/pub?gid=0&single=true&output=csv"; // tu URL de Google Sheets
 
 fetch(url)
-    .then(r => r.text())
+    .then(response => response.text())
     .then(csv => {
-        const rows = csv.split("\n").map(r => r.split(","));
-        const headers = rows[0];
-        const table = document.getElementById("table");
+        // Separador correcto: punto y coma
+        const rows = csv.split("\n").map(r => r.split(";"));
 
-        // Crear encabezados
-        const thead = document.createElement("thead");
-        const trHead = document.createElement("tr");
+        // Cabeceras reales del CSV
+        const headers = rows[0];
+
+        // Crear cabecera de la tabla automáticamente
+        const thead = document.querySelector("thead");
+        const headerRow = document.createElement("tr");
+
         headers.forEach(h => {
             const th = document.createElement("th");
             th.textContent = h;
-            trHead.appendChild(th);
+            headerRow.appendChild(th);
         });
-        thead.appendChild(trHead);
-        table.appendChild(thead);
 
-        // Crear cuerpo
-        const tbody = document.createElement("tbody");
+        thead.appendChild(headerRow);
+
+        // Crear filas con todos los datos
+        const tbody = document.querySelector("tbody");
 
         rows.slice(1).forEach(row => {
             const tr = document.createElement("tr");
-            row.forEach(col => {
+
+            row.forEach(cell => {
                 const td = document.createElement("td");
-                td.textContent = col;
+                td.textContent = cell;
                 tr.appendChild(td);
             });
+
             tbody.appendChild(tr);
         });
 
-        table.appendChild(tbody);
+        // FILTRO por CodEquipo
+        const filtro = document.getElementById("filtro-equipo");
 
-        // Rellenar filtro de clubs
-        const clubSelect = document.getElementById("club");
-        const clubs = [...new Set(rows.slice(1).map(r => r[headers.indexOf("club")]))];
-        clubs.forEach(c => {
-            const opt = document.createElement("option");
-            opt.value = c;
-            opt.textContent = c;
-            clubSelect.appendChild(opt);
+        filtro.addEventListener("change", () => {
+            const valor = filtro.value;
+
+            tbody.innerHTML = "";
+
+            rows.slice(1).forEach(row => {
+                const equipo = row[headers.indexOf("CodEquipo")];
+
+                if (valor === "" || equipo === valor) {
+                    const tr = document.createElement("tr");
+
+                    row.forEach(cell => {
+                        const td = document.createElement("td");
+                        td.textContent = cell;
+                        tr.appendChild(td);
+                    });
+
+                    tbody.appendChild(tr);
+                }
+            });
         });
     });
-
-// Filtros
-function applyFilters() {
-    const search = document.getElementById("search").value.toLowerCase();
-    const position = document.getElementById("position").value;
-    const club = document.getElementById("club").value;
-
-    document.querySelectorAll("#table tbody tr").forEach(tr => {
-        const text = tr.textContent.toLowerCase();
-        const pos = tr.children[2]?.textContent;
-        const clb = tr.children[3]?.textContent;
-
-        const matchSearch = text.includes(search);
-        const matchPos = !position || pos === position;
-        const matchClub = !club || clb === club;
-
-        tr.style.display = matchSearch && matchPos && matchClub ? "" : "none";
-    });
-}
-
-document.getElementById("search").addEventListener("input", applyFilters);
-document.getElementById("position").addEventListener("change", applyFilters);
-document.getElementById("club").addEventListener("change", applyFilters);
-</script>
-
-</body>
-</html>
