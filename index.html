@@ -32,18 +32,20 @@ fetch(url)
     .then(r => r.text())
     .then(csv => {
 
-        // Elimina líneas vacías
-        const lines = csv.split("\n").filter(line => line.trim() !== "");
+        // Elimina líneas vacías y líneas incompletas
+        const lines = csv
+            .split("\n")
+            .filter(line => line.trim() !== "")
+            .filter(line => line.split(";").length > 5);
 
-        // Separa por punto y coma
         const rows = lines.map(l => l.split(";"));
-
         const headers = rows[0];
+
         const thead = document.querySelector("thead");
         const tbody = document.querySelector("tbody");
         const filtro = document.getElementById("filtro-equipo");
 
-        // Crear cabecera
+        // Cabecera
         const trHead = document.createElement("tr");
         headers.forEach(h => {
             const th = document.createElement("th");
@@ -52,7 +54,7 @@ fetch(url)
         });
         thead.appendChild(trHead);
 
-        // Crear lista de equipos
+        // Equipos
         const equipos = new Set();
         rows.slice(1).forEach(row => {
             const equipo = row[headers.indexOf("CodEquipo")];
@@ -66,7 +68,7 @@ fetch(url)
             filtro.appendChild(option);
         });
 
-        // Función para mostrar filas
+        // Mostrar filas
         function mostrarFiltrado() {
             const valor = filtro.value;
             tbody.innerHTML = "";
